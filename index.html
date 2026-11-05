@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="刺客尼克洛姆对战三首奇美拉的桌游战斗试玩，采用清晰的行动骰、头部目标准星与分段结算界面。"
+    />
+    <title>奇美拉试炼｜斗兽场遭遇</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand-lockup">
+          <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+            <path d="M9 16c7-9 15-7 18 1 3-9 13-10 16-3-4 3-5 7-4 12-3 8-9 13-17 16-8-3-14-8-17-16 1-5 0-9-4-12 2-4 6-4 8 2Z" />
+            <path d="M15 22c2 2 5 2 7 0M29 22c2 2 5 2 7 0M20 33c3 2 7 2 10 0" />
+            <path d="m24 25-3 4h6l-3-4Z" />
+          </svg>
+          <div>
+            <p class="brand-scope">斗兽场遭遇</p>
+            <h1>奇美拉试炼</h1>
+          </div>
+        </div>
+
+        <div class="round-status" aria-live="polite">
+          <span id="round-label">第 1 轮</span>
+          <span class="round-divider" aria-hidden="true"></span>
+          <strong id="phase-label">玩家行动</strong>
+        </div>
+
+        <div class="header-actions">
+          <button
+            class="audio-button"
+            id="audio-button"
+            type="button"
+            aria-pressed="true"
+            aria-label="关闭声音"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 9h4l5-4v14l-5-4H5V9Z" />
+              <path class="sound-waves" d="M17 9c1.3 1.7 1.3 4.3 0 6M19.5 6.5c3 3 3 8 0 11" />
+              <path class="sound-muted" d="m17 9 5 6M22 9l-5 6" />
+            </svg>
+            <span id="audio-label">声音</span>
+          </button>
+          <button class="text-button" id="rules-button" type="button">规则</button>
+          <button class="text-button" id="log-button" type="button">战报</button>
+          <button class="text-button" id="reset-button" type="button">重新开战</button>
+        </div>
+      </header>
+
+      <main class="game-shell">
+        <div class="battlefield">
+          <div class="colosseum-backdrop" aria-hidden="true"></div>
+
+          <aside class="player-panel" aria-labelledby="player-name">
+            <div class="player-identity">
+              <div class="player-portrait">
+                <img
+                  src="assets/assassin.jpg"
+                  alt="身披紫黑色斗篷的蜥蜴人刺客尼克洛姆"
+                />
+              </div>
+              <div>
+                <span>刺客 · 中型类人生物</span>
+                <h2 id="player-name">尼克洛姆</h2>
+                <p>绝对中立</p>
+              </div>
+            </div>
+
+            <div class="health-block">
+              <div class="metric-heading">
+                <span>生命</span>
+                <strong><span id="player-hp">38</span><small> / 38</small></strong>
+              </div>
+              <div
+                class="health-track"
+                id="player-hp-track"
+                role="progressbar"
+                aria-label="刺客生命值"
+                aria-valuemin="0"
+                aria-valuemax="38"
+                aria-valuenow="38"
+              >
+                <span id="player-hp-bar"></span>
+              </div>
+            </div>
+
+            <dl class="player-stats">
+              <div>
+                <dt>护甲</dt>
+                <dd id="player-armor">0</dd>
+              </div>
+              <div>
+                <dt>临时防御</dt>
+                <dd id="player-shield">0</dd>
+              </div>
+              <div>
+                <dt>闪避</dt>
+                <dd id="player-dodge">0%</dd>
+              </div>
+            </dl>
+
+            <section class="status-section" aria-labelledby="status-heading">
+              <div class="section-heading">
+                <h3 id="status-heading">当前状态</h3>
+                <span>下回合生效</span>
+              </div>
+              <div class="status-list" id="player-statuses"></div>
+            </section>
+
+            <section class="turn-order-note">
+              <h3>本轮结算顺序</h3>
+              <ol>
+                <li>玩家技能牌</li>
+                <li>敌人非攻击行动</li>
+                <li>玩家攻击牌</li>
+                <li>敌人攻击行动</li>
+              </ol>
+            </section>
+
+            <section class="trait-note">
+              <h3>刺客特性</h3>
+              <p>中毒免疫：不会陷入【中毒】状态。</p>
+              <p>卡牌默认消耗 1 点行动力；缓慢会提高实际费用。</p>
+            </section>
+          </aside>
+
+          <section class="arena-panel" aria-labelledby="enemy-name">
+            <div class="arena-heading">
+              <div>
+                <p>罗马斗兽场 · 裂石场</p>
+                <h2 id="enemy-name">奇美拉</h2>
+                <span>大型怪兽 · 混乱邪恶</span>
+              </div>
+              <div class="arena-badges">
+                <span class="arena-badge"
+                  ><strong id="enemy-total-hp">60</strong> / 60 总生命</span
+                >
+                <span class="arena-badge">3D12 行动</span>
+                <span class="arena-badge flight-badge" id="flight-badge" hidden>
+                  飞行格挡 <strong id="flight-value">0</strong>
+                </span>
+                <span class="arena-badge danger-badge" id="taunt-badge" hidden>
+                  嘲讽：单体攻击 → 羊头
+                </span>
+                <span class="arena-badge danger-badge" id="disadvantage-badge" hidden>
+                  劣势：伤害骰取负
+                </span>
+              </div>
+            </div>
+
+            <div class="arena-visual">
+              <div class="chimera-stage">
+                <img
+                  class="chimera-hero"
+                  src="assets/chimera-cutout.png"
+                  alt="拥有龙、狮、羊三颗头颅和巨大红色双翼的奇美拉"
+                />
+                <div class="enemy-hit-flash" id="enemy-hit-flash"></div>
+              </div>
+
+              <div class="head-targets" id="head-targets" aria-label="选择攻击头部"></div>
+            </div>
+
+            <div class="director-panel">
+              <div class="dice-strip">
+                <span class="director-label">行动骰</span>
+                <div class="dice-row" id="enemy-dice" aria-live="polite">
+                  <span class="dice-placeholder">结束玩家阶段后掷出</span>
+                </div>
+                <span class="roll-note" id="roll-note">3D12</span>
+              </div>
+              <div class="action-spotlight" id="action-spotlight">
+                <span class="spotlight-source">本轮结算</span>
+                <strong id="spotlight-title">完整行动表已公开</strong>
+                <p id="spotlight-copy">
+                  先选择攻击头部和手牌；结束阶段后才会确定奇美拉使用哪些技能。
+                </p>
+              </div>
+              <div class="resolution-feed" id="resolution-feed" aria-live="polite"></div>
+            </div>
+
+            <div class="skip-row">
+              <button
+                class="skip-button"
+                id="skip-button"
+                type="button"
+                hidden
+              >
+                跳过演出
+              </button>
+            </div>
+          </section>
+
+          <aside class="action-rail" aria-labelledby="action-table-heading">
+            <div class="action-rail-heading">
+              <div>
+                <p>出牌前公开</p>
+                <h2 id="action-table-heading">3D12 行动表</h2>
+              </div>
+              <button class="card-button" id="enemy-card-button" type="button">
+                完整卡面
+              </button>
+            </div>
+
+            <div class="action-groups" id="enemy-action-list"></div>
+
+            <div class="rule-summary">
+              <div>
+                <strong>12</strong>
+                <span>出现即重投全部骰子，直到没有 12。</span>
+              </div>
+              <div>
+                <strong>2 + 9</strong>
+                <span>地球投替代两项行动；任一头死亡则无法触发。</span>
+              </div>
+              <div>
+                <strong>头亡</strong>
+                <span>对应骰面作废；三头全灭才获得胜利。</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <section class="hand-zone" aria-labelledby="hand-heading">
+          <div class="hand-main">
+            <div class="hand-heading">
+              <div>
+                <p>布置区</p>
+                <h2 id="hand-heading">战术手牌</h2>
+              </div>
+              <p id="hand-instruction">
+                选择手牌布置；单体攻击会作用于当前指定的头部。
+              </p>
+            </div>
+            <div class="card-track" id="card-track"></div>
+            <div class="empty-hand" id="empty-hand" hidden>
+              手牌已空。下回合开始时会抽取 2 张。
+            </div>
+          </div>
+
+          <aside class="command-dock" aria-label="回合控制">
+            <div class="action-points">
+              <div class="command-heading">
+                <span>行动力</span>
+                <strong id="ap-value">3 / 3</strong>
+              </div>
+              <div
+                class="ap-track"
+                id="ap-track"
+                role="progressbar"
+                aria-label="剩余行动力"
+                aria-valuemin="0"
+                aria-valuemax="3"
+                aria-valuenow="3"
+              >
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <div class="deck-row">
+              <button class="pile-button" id="deck-button" type="button">
+                牌库 <strong id="deck-count">13</strong>
+              </button>
+              <button class="pile-button" id="discard-button" type="button">
+                弃牌 <strong id="discard-count">0</strong>
+              </button>
+              <button class="pile-button" id="exhaust-button" type="button">
+                消耗 <strong id="exhaust-count">0</strong>
+              </button>
+            </div>
+
+            <div class="staged-summary">
+              <span>已布置 <strong id="staged-count">0</strong> 张</span>
+              <p id="staged-copy">尚未选择手牌</p>
+            </div>
+
+            <button class="stand-button" id="stand-button" type="button" hidden>
+              消耗 2 行动力站起
+            </button>
+            <button class="primary-button" id="end-turn-button" type="button">
+              结束玩家阶段
+            </button>
+            <button class="secondary-button" id="clear-selection-button" type="button">
+              清空布置
+            </button>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <div class="head-death-banner" id="head-death-banner" role="status" aria-live="assertive">
+      <span id="head-death-kicker">头部死亡</span>
+      <h2 id="head-death-title">龙头断裂</h2>
+      <p id="head-death-copy"></p>
+    </div>
+
+    <div class="fx-layer" id="fx-layer" aria-hidden="true"></div>
+
+    <dialog class="dialog rules-dialog" id="rules-dialog">
+      <div class="dialog-heading">
+        <div>
+          <p>本次试玩采用的原规则</p>
+          <h2>战斗速查</h2>
+        </div>
+        <button class="icon-button" id="close-rules-button" type="button" aria-label="关闭规则">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="m4 4 12 12M16 4 4 16" />
+          </svg>
+        </button>
+      </div>
+      <div class="rules-content">
+        <section>
+          <h3>奇美拉与头部</h3>
+          <ul>
+            <li>龙头：3 气吼功、6 法术反射、9 振翅、10 火焰吐息。</li>
+            <li>狮头：1 啃咬、2 爪击、8 尾击。</li>
+            <li>羊头：4 角撞、5 降咒、7 恶毒嘲笑、11 争吵。</li>
+            <li>每颗头拥有 20 点独立生命。单体攻击指定头部，范围攻击同时伤害三颗头。</li>
+            <li>对应头部死亡后，该头的骰面作废。三颗头全部死亡才算击败奇美拉。</li>
+            <li>骰面 12 会重投全部骰子，直到没有 12。2+9 由“地球上投”替换。</li>
+            <li>振翅提供一次飞行格挡，抵挡本回合一次玩家攻击。</li>
+          </ul>
+        </section>
+        <section>
+          <h3>回合与结算顺序</h3>
+          <p>
+            玩家技能牌 → 敌人非攻击行动 → 玩家攻击牌 → 敌人攻击行动。首次回合抽取 5 张初始手牌；之后每轮获得 3 点行动力并抽取 2 张。
+          </p>
+          <p>
+            当前 demo 使用包含重复卡与六张扩展牌的 34 张测试牌库，高于常规牌库 30 张上限；正式战斗前需要裁剪。
+          </p>
+        </section>
+        <section>
+          <h3>状态</h3>
+          <ul>
+            <li>【倒地】下回合必须消耗 2 点行动力站起，才能使用卡牌。</li>
+            <li>【劣势】下回合所有带伤害的骰子只抽到减攻击的修正牌。</li>
+            <li>【睡眠】回合开始投 D6，单数解除，偶数跳过回合；受伤立即解除。</li>
+            <li>【缓慢】每层使卡牌费用 +1，回合结束移除 1 层。</li>
+            <li>【麻痹】PK 阶段每张卡牌有 50% 失效，回合结束移除。</li>
+            <li>【流血】每层在回合结束造成 1 点伤害，然后移除 1 层。</li>
+            <li>【中毒】每颗头独立计算，每层在回合结束造成 2 点毒素伤害。</li>
+          </ul>
+        </section>
+        <section>
+          <h3>扩展牌</h3>
+          <ul>
+            <li>搜索：1 点行动力，立即抽 3 张。</li>
+            <li>血色交易：立即失去 5 点生命，获得 2 点行动力。</li>
+            <li>连刺：2 点行动力，对同一头部造成 3 次 2 点穿刺伤害。</li>
+            <li>淬毒飞溅：2 点行动力，造成 4 点穿刺伤害，并让其余头部各获得 1 层中毒。</li>
+            <li>烟幕：本回合获得 35% 闪避，成功闪避一次后抽 1 张。</li>
+            <li>佯攻：抽 1 张，本回合下一张攻击牌伤害 +2。</li>
+          </ul>
+        </section>
+        <section>
+          <h3>素材说明</h3>
+          <p>
+            斗兽场氛围照片来自 Unsplash，仅作 demo 背景使用；奇美拉立绘取自你提供的原卡面。角色立绘沿用当前项目素材。
+          </p>
+        </section>
+      </div>
+    </dialog>
+
+    <dialog class="dialog card-dialog" id="enemy-card-dialog">
+      <div class="dialog-heading">
+        <div>
+          <p>奇美拉设定卡</p>
+          <h2>原始卡面</h2>
+        </div>
+        <button class="icon-button" id="close-card-button" type="button" aria-label="关闭卡面">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="m4 4 12 12M16 4 4 16" />
+          </svg>
+        </button>
+      </div>
+      <img
+        src="assets/chimera-card.png"
+        alt="奇美拉原版卡面，标注 60 点生命、3D12 行动与三个头的生命"
+        loading="lazy"
+        decoding="async"
+      />
+    </dialog>
+
+    <dialog class="dialog log-dialog" id="log-dialog">
+      <div class="dialog-heading">
+        <div>
+          <p>本轮及此前行动</p>
+          <h2>战斗记录</h2>
+        </div>
+        <button class="icon-button" id="close-log-button" type="button" aria-label="关闭战报">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="m4 4 12 12M16 4 4 16" />
+          </svg>
+        </button>
+      </div>
+      <ol class="combat-log" id="combat-log" aria-live="polite"></ol>
+    </dialog>
+
+    <dialog class="dialog pile-dialog" id="pile-dialog">
+      <div class="dialog-heading">
+        <div>
+          <p id="pile-kicker">当前牌堆</p>
+          <h2 id="pile-title">抽牌堆</h2>
+        </div>
+        <button class="icon-button" id="close-pile-button" type="button" aria-label="关闭牌堆">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="m4 4 12 12M16 4 4 16" />
+          </svg>
+        </button>
+      </div>
+      <p class="pile-description" id="pile-description"></p>
+      <div class="pile-card-grid" id="pile-card-grid"></div>
+    </dialog>
+
+    <dialog class="resolution-dialog" id="resolution-dialog">
+      <div class="resolution-heading">
+        <div>
+          <span id="resolution-step">结算第 1 步</span>
+          <p id="resolution-source">玩家卡牌</p>
+        </div>
+        <strong id="resolution-title">伤害结算</strong>
+      </div>
+      <p class="resolution-copy" id="resolution-copy"></p>
+      <ol class="resolution-details" id="resolution-details"></ol>
+      <button class="primary-button" id="continue-resolution-button" type="button">
+        继续结算
+      </button>
+    </dialog>
+
+    <dialog class="dialog result-dialog" id="result-dialog">
+      <p id="result-kicker">遭遇结束</p>
+      <h2 id="result-title">奇美拉倒下</h2>
+      <p id="result-copy"></p>
+      <div class="result-stats" id="result-stats"></div>
+      <button class="primary-button" id="play-again-button" type="button">再战一次</button>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <output id="self-test-output" hidden></output>
+    <script src="game.js"></script>
+  </body>
+</html>
